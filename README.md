@@ -1,5 +1,5 @@
 
-# George — AI Video Explainer
+# George: AI Video Explainer
 
 Forked from the sprint's base FastAPI template.
 
