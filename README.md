@@ -5,13 +5,13 @@ then edit this README's top section for that specific app.
 
 ---
 
-# Lumen — AI Video Explainer
+# George — AI Video Explainer
 
 Forked from the sprint's base FastAPI template.
 
 ---
 
-## Lumen
+## George
 
 **What it does:** enter any school concept (+ optional grade level/angle),
 get back a short narrated, animated explainer — a script broken into
