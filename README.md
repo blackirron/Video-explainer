@@ -1,9 +1,3 @@
-# App Template (FastAPI + Claude API)
-
-Base template for the 10-day sprint. Fork/copy this folder for every new app,
-then edit this README's top section for that specific app.
-
----
 
 # George — AI Video Explainer
 
