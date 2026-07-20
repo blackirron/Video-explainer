@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Lumen — AI Video Explainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FBF6EC;
+    --panel: #FFFFFF;
+    --border: #E8DFC8;
+    --ink: #2B2B2B;
+    --muted: #8A8270;
+    --red: #D9614E;
+    --blue: #3F6B8C;
+    --green: #5B8A5A;
+    --gold: #E8B04B;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 48px 20px;
+  }
+  .wrap { width: 100%; max-width: 720px; }
+
+  .brand { display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px; }
+  .brand h1 {
+    font-family: 'Zilla Slab', serif;
+    font-weight: 700;
+    font-size: 30px;
+    margin: 0;
+    color: var(--ink);
+  }
+  .brand span { font-size: 13px; color: var(--muted); }
+  .tagline { color: var(--muted); font-size: 15px; margin: 8px 0 28px; }
+
+  .input-panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 28px;
+  }
+  label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--ink); }
+  .field { margin-bottom: 16px; }
+  input[type="text"] {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    color: var(--ink);
+    outline: none;
+    background: var(--bg);
+  }
+  input[type="text"]:focus { border-color: var(--blue); }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 5px; }
+
+  button.generate {
+    font-family: 'Zilla Slab', serif;
+    font-weight: 600;
+    font-size: 16px;
+    padding: 13px 26px;
+    border-radius: 9px;
+    border: none;
+    background: var(--red);
+    color: white;
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+  }
+  button.generate:hover:not(:disabled) { opacity: 0.88; }
+  button.generate:disabled { opacity: 0.5; cursor: not-allowed; }
+  button.generate:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+
+  .status-line { font-size: 13px; color: var(--muted); margin-top: 12px; min-height: 18px; }
+  .status-line.error { color: var(--red); }
+
+  .player {
+    display: none;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .player.show { display: block; }
+  .player-title {
+    font-family: 'Zilla Slab', serif;
+    font-weight: 600;
+    font-size: 20px;
+    padding: 18px 22px 0;
+  }
+  .scene-stage {
+    position: relative;
+    aspect-ratio: 800 / 450;
+    margin: 16px 22px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--bg);
+  }
+  .scene-stage svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+  .scene-stage svg.active { opacity: 1; }
+
+  .narration-text {
+    padding: 4px 22px 0;
+    font-size: 14px;
+    color: var(--muted);
+    font-style: italic;
+    min-height: 20px;
+  }
+
+  .progress-dots {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    padding: 16px 0 4px;
+  }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border); transition: background 0.2s ease; }
+  .dot.active { background: var(--red); }
+  .dot.done { background: var(--gold); }
+
+  .controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    padding: 8px 22px 22px;
+  }
+  .controls button {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 9px 16px;
+    border-radius: 7px;
+    border: 1.5px solid var(--border);
+    background: var(--panel);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .controls button:hover { border-color: var(--blue); }
+  .controls button:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="brand">
+    <h1>Lumen</h1>
+    <span>AI video explainer for school concepts</span>
+  </div>
+  <p class="tagline">Type any concept from class. Get a short, narrated, animated explainer back.</p>
+
+  <div class="input-panel">
+    <div class="field">
+      <label for="concept">What concept do you want explained?</label>
+      <input type="text" id="concept" placeholder="e.g. how photosynthesis works" maxlength="300" />
+    </div>
+    <div class="field">
+      <label for="context">Anything else to tailor it? (optional)</label>
+      <input type="text" id="context" placeholder="e.g. for 8th graders, focus on the chemical equation" maxlength="300" />
+      <div class="hint">Grade level, a specific angle, or leave blank for a general explanation.</div>
+    </div>
+    <button class="generate" id="generateBtn">Generate Video</button>
+    <div class="status-line" id="statusLine"></div>
+  </div>
+
+  <div class="player" id="player">
+    <div class="player-title" id="playerTitle"></div>
+    <div class="scene-stage" id="sceneStage"></div>
+    <div class="narration-text" id="narrationText"></div>
+    <div class="progress-dots" id="progressDots"></div>
+    <div class="controls">
+      <button id="restartBtn">⟲ Restart</button>
+      <button id="pauseBtn">⏸ Pause</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const conceptInput = document.getElementById('concept');
+  const contextInput = document.getElementById('context');
+  const generateBtn = document.getElementById('generateBtn');
+  const statusLine = document.getElementById('statusLine');
+  const player = document.getElementById('player');
+  const playerTitle = document.getElementById('playerTitle');
+  const sceneStage = document.getElementById('sceneStage');
+  const narrationText = document.getElementById('narrationText');
+  const progressDots = document.getElementById('progressDots');
+  const restartBtn = document.getElementById('restartBtn');
+  const pauseBtn = document.getElementById('pauseBtn');
+
+  let scenes = [];
+  let currentIndex = 0;
+  let isPaused = false;
+  let fallbackTimer = null;
+
+  function setStatus(text, isError = false) {
+    statusLine.textContent = text;
+    statusLine.classList.toggle('error', isError);
+  }
+
+  generateBtn.addEventListener('click', async () => {
+    const concept = conceptInput.value.trim();
+    if (concept.length < 3) {
+      setStatus('Type a concept first (at least a few characters).', true);
+      return;
+    }
+
+    generateBtn.disabled = true;
+    setStatus('Generating your explainer — this takes 15-30 seconds…');
+    player.classList.remove('show');
+    speechSynthesis.cancel();
+
+    try {
+      const res = await fetch('/explainer/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ concept, context: contextInput.value.trim() }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || `Server returned ${res.status}`);
+      }
+
+      const data = await res.json();
+      scenes = data.scenes;
+      playerTitle.textContent = data.title;
+      buildStage();
+      buildDots();
+      setStatus('');
+      player.classList.add('show');
+      currentIndex = 0;
+      isPaused = false;
+      pauseBtn.textContent = '⏸ Pause';
+      playScene(0);
+    } catch (err) {
+      setStatus(`Something went wrong: ${err.message}`, true);
+      console.error(err);
+    } finally {
+      generateBtn.disabled = false;
+    }
+  });
+
+  function buildStage() {
+    sceneStage.innerHTML = scenes.map((s, i) => s.svg.replace('<svg', `<svg data-index="${i}"`)).join('');
+  }
+
+  function buildDots() {
+    progressDots.innerHTML = scenes.map((_, i) => `<div class="dot" data-index="${i}"></div>`).join('');
+  }
+
+  function updateDots(activeIndex) {
+    [...progressDots.children].forEach((dot, i) => {
+      dot.classList.toggle('active', i === activeIndex);
+      dot.classList.toggle('done', i < activeIndex);
+    });
+  }
+
+  function playScene(index) {
+    if (index >= scenes.length) return;
+    currentIndex = index;
+
+    [...sceneStage.children].forEach((svg, i) => svg.classList.toggle('active', i === index));
+    updateDots(index);
+    narrationText.textContent = scenes[index].narration;
+
+    const utterance = new SpeechSynthesisUtterance(scenes[index].narration);
+    utterance.rate = 0.95;
+
+    utterance.onend = () => advance();
+    clearTimeout(fallbackTimer);
+    fallbackTimer = setTimeout(() => advance(), (scenes[index].duration_estimate_seconds + 3) * 1000);
+
+    speechSynthesis.cancel();
+    speechSynthesis.speak(utterance);
+  }
+
+  function advance() {
+    clearTimeout(fallbackTimer);
+    if (isPaused) return;
+    if (currentIndex + 1 < scenes.length) {
+      playScene(currentIndex + 1);
+    } else {
+      updateDots(scenes.length);
+    }
+  }
+
+  restartBtn.addEventListener('click', () => {
+    speechSynthesis.cancel();
+    clearTimeout(fallbackTimer);
+    isPaused = false;
+    pauseBtn.textContent = '⏸ Pause';
+    playScene(0);
+  });
+
+  pauseBtn.addEventListener('click', () => {
+    if (isPaused) {
+      isPaused = false;
+      pauseBtn.textContent = '⏸ Pause';
+      playScene(currentIndex);
+    } else {
+      isPaused = true;
+      pauseBtn.textContent = '▶ Resume';
+      speechSynthesis.cancel();
+      clearTimeout(fallbackTimer);
+    }
+  });
+</script>
+
+</body>
+</html>
