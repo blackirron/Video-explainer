@@ -1,17 +1,11 @@
-# App Template (FastAPI + Claude API)
 
-Base template for the 10-day sprint. Fork/copy this folder for every new app,
-then edit this README's top section for that specific app.
-
----
-
-# Lumen — AI Video Explainer
+# George — AI Video Explainer
 
 Forked from the sprint's base FastAPI template.
 
 ---
 
-## Lumen
+## George
 
 **What it does:** enter any school concept (+ optional grade level/angle),
 get back a short narrated, animated explainer — a script broken into
@@ -22,13 +16,10 @@ playing directly in the browser.
 the same visual *family* as TED-Ed (warm palette, simple shapes,
 metaphor-driven), not a reproduction of TED-Ed's actual bespoke
 hand-drawn animation — that's not achievable through an automated
-pipeline. Narration is generated server-side with `edge-tts` (Microsoft
-Edge's free neural TTS, no API key, one consistent voice for every
-student) and streamed to the browser as audio; if generation fails for
-a specific scene, that scene alone falls back to the browser's built-in
-`speechSynthesis` rather than losing narration for the whole video.
+pipeline. Narration uses the browser's built-in Web Speech API (free,
+no API key), so voice quality varies by browser/OS.
 
-**Live demo:** [link once deployed]
+**Live demo:** https://video-explainer.onrender.com
 
 ## How it works
 
@@ -39,30 +30,19 @@ a specific scene, that scene alone falls back to the browser's built-in
    markup, styled from a fixed shared palette so all scenes look
    cohesive. Falls back to a plain labeled placeholder if generation
    fails, rather than breaking the whole video.
-3. `narration_tts.py` — each scene's narration text → base64 MP3 audio,
-   via `edge-tts`, one fixed voice across every scene. Raises on failure
-   rather than faking silent/beep audio; the router treats a single
-   scene's TTS failure as non-fatal.
-4. `routers/explainer.py` — orchestrates all three, illustrating *and*
-   narrating every scene concurrently (not one-by-one, and not
-   sequentially between the two services) to keep wait time down.
-5. Frontend — plays each scene's SVG with a fade transition, plays the
-   server-generated MP3 (falling back to `speechSynthesis` per-scene if
-   that scene's audio is missing), auto-advances when audio ends (with a
-   timeout fallback in case an audio/speech event doesn't fire reliably).
+3. `routers/explainer.py` — orchestrates both, illustrating all scenes
+   *concurrently* (not one-by-one) to keep wait time down.
+4. Frontend — plays each scene's SVG with a fade transition, narrates via
+   `speechSynthesis`, auto-advances when narration ends (with a timeout
+   fallback in case a browser doesn't fire `onend` reliably).
 
 ## Possible next steps (not built yet)
 
 - Server-side MP4 export (ffmpeg compositing scenes + audio) for
   downloading/sharing outside the browser — meaningfully heavier than
   the current in-browser player, treat as a separate phase.
-- True mid-scene pause/resume for audio (currently "resume" replays the
-  current scene from its start, which is simple but not frame-accurate).
-- `edge-tts` is a free, unofficial (reverse-engineered) use of
-  Microsoft's service — solid for a school project, but if it ever
-  becomes unreliable in production, swapping in a paid TTS provider
-  (Azure Speech proper, ElevenLabs, OpenAI) only touches
-  `narration_tts.py`.
+- A nicer TTS voice (e.g. ElevenLabs) instead of the browser's built-in
+  one, if voice quality becomes the limiting factor.
 
 
 ---
@@ -114,11 +94,13 @@ app/
 
 ## Deployment
 
-Deployed on: [Railway / Render / Fly.io — fill in]
+Deployed on: Render
 
 Environment variables to set on the platform dashboard:
 - `LLM_PROVIDER` (`groq` by default — free, no card required)
 - `GROQ_API_KEY` (get one free at https://console.groq.com/keys)
 - `API_AUTH_TOKEN`
 - `ENVIRONMENT=production`
-- `ALLOWED_ORIGINS` (your frontend's real URL)
+- `ALLOWED_ORIGINS` [(your frontend's real URL)](https://video-explainer.onrender.com)
+
+<img width="1920" height="958" alt="image" src="https://github.com/user-attachments/assets/1715a476-de73-4918-be91-782eeeab75a9" />
