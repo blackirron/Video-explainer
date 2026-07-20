@@ -25,7 +25,7 @@ hand-drawn animation — that's not achievable through an automated
 pipeline. Narration uses the browser's built-in Web Speech API (free,
 no API key), so voice quality varies by browser/OS.
 
-**Live demo:** [link once deployed]
+**Live demo:** https://video-explainer.onrender.com
 
 ## How it works
 
@@ -100,11 +100,13 @@ app/
 
 ## Deployment
 
-Deployed on: [Railway / Render / Fly.io — fill in]
+Deployed on: Render
 
 Environment variables to set on the platform dashboard:
 - `LLM_PROVIDER` (`groq` by default — free, no card required)
 - `GROQ_API_KEY` (get one free at https://console.groq.com/keys)
 - `API_AUTH_TOKEN`
 - `ENVIRONMENT=production`
-- `ALLOWED_ORIGINS` (your frontend's real URL)
+- `ALLOWED_ORIGINS` [(your frontend's real URL)](https://video-explainer.onrender.com)
+
+<img width="1920" height="958" alt="image" src="https://github.com/user-attachments/assets/1715a476-de73-4918-be91-782eeeab75a9" />
